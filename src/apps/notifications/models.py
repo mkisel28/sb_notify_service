@@ -33,6 +33,8 @@ class Bot(models.Model):
     created_at = models.DateTimeField("Дата создания", auto_now_add=True)
     updated_at = models.DateTimeField("Дата обновления", auto_now=True)
 
+    api_keys: models.Manager["APIKey"]
+
     class Meta:
         verbose_name = "Бот"
         verbose_name_plural = "Боты"
@@ -42,7 +44,7 @@ class Bot(models.Model):
 
     def generate_api_key(self):
         """Создает новый API-ключ для бота (без перезаписи существующих)."""
-        return APIKey.objects.create(bot=self, key=APIKey.generate_new_key())
+        return self.api_keys.create(key=APIKey.generate_new_key())
 
     def get_api_keys(self):
         """Возвращает список всех API-ключей для бота."""
