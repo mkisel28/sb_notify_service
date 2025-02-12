@@ -1,0 +1,6 @@
+services:
+  web:
+    build:
+      target: dev
+    volumes:
+      - ./src/:/app/src/
