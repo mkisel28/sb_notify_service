@@ -1,0 +1,32 @@
+[project]
+name = "backend-app"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi[all]>=0.115.8",
+    "gunicorn>=23.0.0",
+    "pydantic-settings>=2.7.1",
+    "pydantic>=2.10.6",
+]
+
+
+[dependency-groups]
+dev = [
+    "ruff>=0.9.4",
+]
+
+[tool.ruff]
+exclude = ["**/.venv/**", "**/migrations/**"]
+lint.select = ["ALL"]
+lint.ignore = ["D203", "D213", "ARG001", "S101", "RUF002", "RUF001", "D104", "RUF012",
+            "ANN001", "ANN201", "N806", "D103", "D106", "D101", "D100"]
+
+line-length = 79
+
+[tool.ruff.lint.mccabe]
+max-complexity = 3
+
+[tool.black]
+line-length = 79

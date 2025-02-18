@@ -7,8 +7,8 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml \
-    uv.lock ./
+COPY admin_app/pyproject.toml \
+    admin_app/uv.lock ./
 
 FROM base AS prod
 
@@ -17,7 +17,7 @@ RUN --mount=from=ghcr.io/astral-sh/uv,source=/uv,target=/bin/uv \
 
 ENV PATH="/app/.venv/bin:$PATH"
 
-COPY /src/ /app/src
+COPY admin_app/src/ /app/src
 
 
 FROM base AS dev
@@ -27,4 +27,4 @@ RUN --mount=from=ghcr.io/astral-sh/uv,source=/uv,target=/bin/uv \
 
 ENV PATH="/app/.venv/bin:$PATH"
 
-COPY /src/ /app/src
+COPY admin_app/src/ /app/src

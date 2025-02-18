@@ -1,11 +1,11 @@
 
 services:
-  web:
+  admin_app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./docker/admin/Dockerfile
       target: prod
-    container_name: sb_notify_web
+    container_name: admin_app_sb_notify
     restart: unless-stopped
     command: bash -c "python src/manage.py collectstatic --noinput && python src/manage.py migrate && python src/manage.py runserver 0.0.0.0:8000"
     volumes:
@@ -17,6 +17,21 @@ services:
       db:
         condition: service_healthy
 
+
+  backend_app:
+    build: 
+      context: .
+      dockerfile: ./docker/backend/Dockerfile
+      target: prod
+    container_name: backend_app_sb_notify
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
 
   db:
     image: postgres:17
@@ -35,16 +50,31 @@ services:
       - pg_data_sb_notify:/var/lib/postgresql/data
 
 
+  redis:
+    image: redis:8.0-M02-alpine
+    container_name: redis
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      retries: 5
+      timeout: 3s
+      start_period: 2s
+    volumes:
+      - redis_data:/data
+      - ./docker/redis.conf:/usr/local/etc/redis/redis.conf
+
   nginx:
     image: nginx:1.25
     container_name: nginx_sb_notify
     restart: unless-stopped
     depends_on:
-      - web
+      - admin_app
     ports:
-      - "1111:80"
+      - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf
       - static_data_sb_notify:/code/static:ro
       - media_data_sb_notify:/code/media:ro
 
@@ -53,3 +83,4 @@ volumes:
   pg_data_sb_notify:
   media_data_sb_notify:
   static_data_sb_notify:
+  redis_data:

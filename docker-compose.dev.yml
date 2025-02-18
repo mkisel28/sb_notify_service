@@ -1,6 +1,12 @@
 services:
-  web:
+  admin_app:
     build:
       target: dev
     volumes:
-      - ./src/:/app/src/
+      - ./admin_app/src/:/app/src/
+
+  backend_app:
+    build:
+      target: dev
+    volumes:
+      - ./backend_app/src/:/app/src/
