@@ -18,8 +18,8 @@ RUN --mount=from=ghcr.io/astral-sh/uv,source=/uv,target=/bin/uv \
 ENV PATH="/app/.venv/bin:$PATH"
 
 COPY backend_app/src/ /app/src
-
-CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-w", "4", "-b", "0.0.0.0:8000", "src.main:app"]
+WORKDIR /app/src
+CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-w", "4", "-b", "0.0.0.0:8000", "main:app"]
 
 
 FROM base AS dev
@@ -30,5 +30,5 @@ RUN --mount=from=ghcr.io/astral-sh/uv,source=/uv,target=/bin/uv \
 ENV PATH="/app/.venv/bin:$PATH"
 
 COPY backend_app/src/ /app/src
-
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+WORKDIR /app/src
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
