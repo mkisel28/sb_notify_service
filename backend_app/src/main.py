@@ -1,7 +1,9 @@
 from collections.abc import AsyncGenerator
+from tortoise.contrib.fastapi import register_tortoise
 from contextlib import asynccontextmanager
 from typing import Annotated
 
+from api.routers import router as main_router
 from fastapi import (
     APIRouter,
     Depends,
@@ -15,6 +17,7 @@ from infra.redis_client import RedisClient
 
 router = APIRouter(prefix="/api")
 
+router.include_router(main_router)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -100,3 +103,12 @@ async def subscribe_to_channel(
             yield f"data: {message}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+
+register_tortoise(
+    app=app,
+    db_url="postgres://1111:1111@db:5432/1111",
+    modules={"models": ["infra.database.models"]},
+    add_exception_handlers=True,
+)
+
