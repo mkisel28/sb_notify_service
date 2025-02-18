@@ -10,9 +10,9 @@ if TYPE_CHECKING:
 
 class APIKey(Model):
   id = fields.UUIDField(primary_key=True, default=uuid.uuid4)
-  key = fields.CharField("API-key", max_length=255, unique=True)
+  key = fields.CharField(max_length=255)
   bot: fields.ForeignKeyRelation["Bot"] = fields.ForeignKeyField(
-      "models.bot",
+      "models.Bot",
       on_delete=fields.CASCADE,
       related_name="api_keys"
   )

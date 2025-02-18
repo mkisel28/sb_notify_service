@@ -8,7 +8,7 @@ router = APIRouter(prefix="/users")
 async def get_users(): 
   users_result = await User.all()
 
-  if users_result is None:
-      return "qwe: qwe"
+  if not users_result:
+    return "Bla Bla"
   
   return users_result

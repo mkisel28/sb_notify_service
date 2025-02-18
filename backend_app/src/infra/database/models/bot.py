@@ -12,10 +12,10 @@ if TYPE_CHECKING:
 
 class Bot(Model):
   id = fields.UUIDField(primary_key=True, default=uuid.uuid4)
-  name = fields.CharField()
-  token = fields.CharField()
+  name = fields.CharField(max_length=255)
+  token = fields.CharField(max_length=255)
   owner: fields.ForeignKeyRelation["User"] = fields.ForeignKeyField(
-      "models.user",
+      "models.User",
       on_delete=fields.CASCADE,
       related_name="bots"
   )

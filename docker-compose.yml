@@ -7,7 +7,7 @@ services:
       target: prod
     container_name: admin_app_sb_notify
     restart: unless-stopped
-    command: bash -c "python src/manage.py collectstatic --noinput && python src/manage.py runserver 0.0.0.0:8000"
+    command: bash -c "python src/manage.py collectstatic --noinput && python src/manage.py migrate && python src/manage.py runserver 0.0.0.0:8000"
     volumes:
       - media_data_sb_notify:/app/src/media  
       - static_data_sb_notify:/app/src/staticfiles 
