@@ -23,6 +23,9 @@ superuser:
 down:
 	$(DOCKER_COMPOSE_CMD) down
 
+full-down:
+	$(DOCKER_COMPOSE_CMD) down -v
+
 lint:
 	$(DEV_COMPOSE_CMD) exec admin_app black .
 	$(DEV_COMPOSE_CMD) exec admin_app ruff check . --fix

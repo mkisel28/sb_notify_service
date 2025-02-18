@@ -107,7 +107,7 @@ async def subscribe_to_channel(
 
 register_tortoise(
     app=app,
-    db_url="postgres://1111:1111@db:5432/1111",
+    config=settings.tortoise_config,
     modules={"models": ["infra.database.models"]},
     add_exception_handlers=True,
 )
