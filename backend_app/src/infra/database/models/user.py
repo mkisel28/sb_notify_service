@@ -1,8 +1,9 @@
 import uuid
+from typing import TYPE_CHECKING
 
 from tortoise import fields
 from tortoise.models import Model
-from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
   from infra.database.models.bot import Bot
 

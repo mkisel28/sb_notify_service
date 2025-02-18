@@ -1,9 +1,7 @@
 from collections.abc import AsyncGenerator
-from tortoise.contrib.fastapi import register_tortoise
 from contextlib import asynccontextmanager
 from typing import Annotated
 
-from api.routers import router as main_router
 from fastapi import (
     APIRouter,
     Depends,
@@ -11,7 +9,9 @@ from fastapi import (
     Request,
 )
 from fastapi.responses import StreamingResponse
+from tortoise.contrib.fastapi import register_tortoise
 
+from api.routers import router as main_router
 from core.config import settings
 from infra.redis_client import RedisClient
 
@@ -98,7 +98,7 @@ async def subscribe_to_channel(
     channel: str,
     redis_client: Annotated[RedisClient, Depends(get_redis_client)],
 ) -> StreamingResponse:
-    async def event_stream() -> AsyncGenerator[str, None]:
+    async def event_stream() -> AsyncGenerator[str]:
         async for message in redis_client.listen_to_channel(channel):
             yield f"data: {message}\n\n"
 

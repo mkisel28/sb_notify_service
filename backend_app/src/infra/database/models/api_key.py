@@ -1,8 +1,8 @@
 import uuid
+from typing import TYPE_CHECKING
 
 from tortoise import fields
 from tortoise.models import Model
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
   from infra.database.models.bot import Bot
@@ -14,7 +14,7 @@ class APIKey(Model):
   bot: fields.ForeignKeyRelation["Bot"] = fields.ForeignKeyField(
       "models.Bot",
       on_delete=fields.CASCADE,
-      related_name="api_keys"
+      related_name="api_keys",
   )
   is_active = fields.BooleanField()
   created_at = fields.DatetimeField()
