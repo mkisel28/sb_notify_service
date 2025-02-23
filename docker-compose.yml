@@ -78,6 +78,31 @@ services:
       - static_data_sb_notify:/code/static:ro
       - media_data_sb_notify:/code/media:ro
 
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    container_name: rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  scheduler:
+    build: 
+      context: .
+      dockerfile: ./docker/backend/Dockerfile
+      target: prod
+    command: ["taskiq", "scheduler", "tasks.rps:scheduler"]
+    environment:
+      REDIS_URL: "redis://redis:6379"
+      RABBITMQ_URL: "amqp://user:password@rabbitmq/"
 
 volumes:
   pg_data_sb_notify:

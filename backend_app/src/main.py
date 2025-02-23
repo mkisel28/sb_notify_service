@@ -6,11 +6,11 @@ from fastapi import (
     APIRouter,
     Depends,
     FastAPI,
-    Request,
 )
 from fastapi.responses import StreamingResponse
 from tortoise.contrib.fastapi import register_tortoise
 
+from api.dependencies import get_redis_client
 from api.routers import router as main_router
 from core.config import settings
 from infra.redis_client import RedisClient
@@ -18,6 +18,7 @@ from infra.redis_client import RedisClient
 router = APIRouter(prefix="/api")
 
 router.include_router(main_router)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -36,10 +37,6 @@ app = FastAPI(
     openapi_url="/api/openapi.json",
     lifespan=lifespan,
 )
-
-
-def get_redis_client(request: Request) -> RedisClient:
-    return request.app.state.redis_client
 
 
 @app.get("/")
@@ -111,4 +108,3 @@ register_tortoise(
     modules={"models": ["infra.database.models"]},
     add_exception_handlers=True,
 )
-

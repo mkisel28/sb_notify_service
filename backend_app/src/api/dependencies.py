@@ -1,12 +1,13 @@
 from http import HTTPStatus
 from typing import Annotated
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request
 from fastapi.security import APIKeyHeader
 
 from application.api_key_service import ApiKeyService
 from application.notification_service import NotificationService
 from infra.database.models.api_key import APIKey
+from infra.redis_client import RedisClient
 
 header_scheme = APIKeyHeader(name="x-api-key")
 
@@ -17,6 +18,10 @@ def get_api_key_service() -> ApiKeyService:
 
 def get_notification_service() -> NotificationService:
     return NotificationService()
+
+
+def get_redis_client(request: Request) -> RedisClient:
+    return request.app.state.redis_client
 
 
 async def verify_api_key(

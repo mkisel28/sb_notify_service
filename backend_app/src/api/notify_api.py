@@ -1,11 +1,16 @@
+import json
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from api.dependencies import get_notification_service, verify_api_key
-from application.notification_service import NotificationService
+from api.dependencies import (
+    get_redis_client,
+    verify_api_key,
+)
 from infra.database.models.api_key import APIKey
-from schemas.notify_schema import NotifyIn
+from infra.redis_client import RedisClient
+from schemas.notify_schema import NotifyIn, NotifyRedisDto
 
 router = APIRouter(prefix="/notify")
 
@@ -14,16 +19,19 @@ router = APIRouter(prefix="/notify")
 async def notify(
     notify_data: NotifyIn,
     api_key: Annotated[APIKey, Depends(verify_api_key)],
-    notification_service: Annotated[
-        NotificationService,
-        Depends(get_notification_service),
-    ],
+    redis_client: Annotated[RedisClient, Depends(get_redis_client)],
 ):
-    result = await notification_service.send(
-        notify_data.target_id,
-        notify_data.message,
-        api_key.bot.token,
-        notify_data.format,
+    key = f"notification:{notify_data.target_id}:{api_key.bot.token}"
+
+    notify_redis_dto = NotifyRedisDto(
+        **notify_data.model_dump(),
+        bot_token=api_key.bot.token,
+        timestamp=datetime.now(UTC).timestamp(),
     )
 
-    return "OK"
+    await redis_client.add_to_list(
+        key,
+        json.dumps(notify_redis_dto.model_dump()),
+    )
+
+    return "kek"

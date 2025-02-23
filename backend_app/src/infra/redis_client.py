@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
+from typing import Any
 
 import redis.asyncio as redis
 
@@ -207,7 +208,7 @@ class RedisClient:
     async def add_to_list(
         self,
         key: str,
-        *values: str,
+        *values: Any,
         right: bool = True,
         ttl: int | None = None,
     ) -> None:
