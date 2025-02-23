@@ -54,10 +54,10 @@ class APIKeyAdmin(ModelAdmin):
     def get_urls(self):
         """Добавляет кастомные URL в админку для API-ключей."""
         custom_urls = [
-            path("<int:key_id>/regenerate/", self.regenerate_key),
-            path("<int:key_id>/revoke/", self.revoke_key),
-            path("<int:key_id>/activate/", self.activate_key),
-            path("<int:key_id>/delete/", self.delete_key),
+            path("<str:key_id>/regenerate/", self.regenerate_key),
+            path("<str:key_id>/revoke/", self.revoke_key),
+            path("<str:key_id>/activate/", self.activate_key),
+            path("<str:key_id>/delete/", self.delete_key),
         ]
         return custom_urls + super().get_urls()
 
@@ -122,7 +122,7 @@ class BotAdmin(ModelAdmin):
     def get_urls(self):
         """Добавляет кастомные URL в админку."""
         custom_urls = [
-            path("generate_key/<int:bot_id>/", self.generate_key),
+            path("generate_key/<str:bot_id>/", self.generate_key),
         ]
         return custom_urls + super().get_urls()
 

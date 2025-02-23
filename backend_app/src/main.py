@@ -9,12 +9,15 @@ from fastapi import (
     Request,
 )
 from fastapi.responses import StreamingResponse
+from tortoise.contrib.fastapi import register_tortoise
 
+from api.routers import router as main_router
 from core.config import settings
 from infra.redis_client import RedisClient
 
 router = APIRouter(prefix="/api")
 
+router.include_router(main_router)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -95,8 +98,17 @@ async def subscribe_to_channel(
     channel: str,
     redis_client: Annotated[RedisClient, Depends(get_redis_client)],
 ) -> StreamingResponse:
-    async def event_stream() -> AsyncGenerator[str, None]:
+    async def event_stream() -> AsyncGenerator[str]:
         async for message in redis_client.listen_to_channel(channel):
             yield f"data: {message}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+
+register_tortoise(
+    app=app,
+    config=settings.tortoise_config,
+    modules={"models": ["infra.database.models"]},
+    add_exception_handlers=True,
+)
+

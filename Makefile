@@ -18,26 +18,29 @@ prod:
 	$(DOCKER_COMPOSE_CMD) up -d --build
 
 superuser:
-	$(DOCKER_COMPOSE_CMD) exec web python src/manage.py createsuperuser
+	$(DOCKER_COMPOSE_CMD) exec admin_app python src/manage.py createsuperuser
 
 down:
 	$(DOCKER_COMPOSE_CMD) down
 
+full-down:
+	$(DOCKER_COMPOSE_CMD) down -v
+
 lint:
-	$(DEV_COMPOSE_CMD) exec web black .
-	$(DEV_COMPOSE_CMD) exec web ruff check . --fix
+	$(DEV_COMPOSE_CMD) exec admin_app black .
+	$(DEV_COMPOSE_CMD) exec admin_app ruff check . --fix
 
 mm:
-	$(DEV_COMPOSE_CMD) exec web python src/manage.py makemigrations
+	$(DEV_COMPOSE_CMD) exec admin_app python src/manage.py makemigrations
 
 migrate:
-	$(DEV_COMPOSE_CMD) exec web python src/manage.py migrate
+	$(DEV_COMPOSE_CMD) exec admin_app python src/manage.py migrate
 
 dump:
-	$(DEV_COMPOSE_CMD) exec web python src/manage.py dumpdata --natural-primary --natural-foreign --indent 2 > src/backup.json
+	$(DEV_COMPOSE_CMD) exec admin_app python src/manage.py dumpdata --natural-primary --natural-foreign --indent 2 > src/backup.json
 
 loaddata:
-	$(DEV_COMPOSE_CMD) exec web python src/manage.py loaddata src/backup.json
+	$(DEV_COMPOSE_CMD) exec admin_app python src/manage.py loaddata src/backup.json
 
 help:
 	@echo "Доступные команды:"

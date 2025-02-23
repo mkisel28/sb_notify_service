@@ -286,7 +286,7 @@ class RedisClient:
     async def listen_to_channel(
         self,
         channel: str,
-    ) -> AsyncGenerator[str, None]:
+    ) -> AsyncGenerator[str]:
         """Подписывается на канал и слушает сообщения.
 
         :param channel: Название канала.

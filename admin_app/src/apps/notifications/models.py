@@ -1,6 +1,7 @@
 """Модели для приложения уведомлений."""
 
 import secrets
+import uuid
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -10,9 +11,12 @@ from django.utils.timezone import now
 class User(AbstractUser):
     """Пользователь, использующий сервис уведомлений."""
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
     class Meta:
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
+        db_table = "user"
 
     def __str__(self) -> str:
         """Возвращает имя пользователя."""
@@ -21,7 +25,8 @@ class User(AbstractUser):
 
 class Bot(models.Model):
     """Telegram-бот, используемый для отправки уведомлений."""
-
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField("Название", max_length=255, unique=True)
     token = models.CharField("Токен", max_length=255, unique=True)
     owner = models.ForeignKey(
@@ -38,6 +43,7 @@ class Bot(models.Model):
     class Meta:
         verbose_name = "Бот"
         verbose_name_plural = "Боты"
+        db_table = "bot"
 
     def __str__(self) -> str:
         return self.name
@@ -53,7 +59,8 @@ class Bot(models.Model):
 
 class APIKey(models.Model):
     """API-ключи для аутентификации и привязки к конкретному боту."""
-
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     key = models.CharField("API-key", max_length=255, unique=True)
     bot = models.ForeignKey(
         Bot,
@@ -68,6 +75,7 @@ class APIKey(models.Model):
     class Meta:
         verbose_name = "API-ключ"
         verbose_name_plural = "API-ключи"
+        db_table = "api_key"
 
     def __str__(self) -> str:
         return f"{self.bot.name} - {self.key[:10]}..."
