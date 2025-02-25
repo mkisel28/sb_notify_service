@@ -275,6 +275,23 @@ class RedisClient:
         redis_client = await self._get_redis_connection()
         return await redis_client.lrange(key, start, end)  # type: ignore [await]
 
+    async def get_all_keys(
+        self,
+        match: str,
+        count: int | None = 10,
+        type: str | None = "LIST",
+    ):
+        redis_client = await self._get_redis_connection()
+
+        return [
+            key
+            async for key in redis_client.scan_iter(
+                match=match,
+                count=count,
+                _type=type,
+            )
+        ]
+
     async def publish_to_channel(self, channel: str, message: str) -> None:
         """Публикует сообщение в канал.
 

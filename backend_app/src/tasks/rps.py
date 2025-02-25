@@ -1,79 +1,74 @@
-import asyncio
-import functools
 import logging
+from contextlib import asynccontextmanager
 
-from faststream import FastStream
+from aioclock import AioClock, Depends, Every
+from aioclock.group import Group
 from faststream.rabbit import RabbitBroker
-from taskiq.schedule_sources import LabelScheduleSource
-from taskiq_faststream import BrokerWrapper, StreamScheduler
 
-# Настроим логирование
+from infra.redis_client import RedisClient
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Указываем настройки для RabbitMQ и Redis
-RABBITMQ_URL = "amqp://user:password@rabbitmq:5672"
-REDIS_URL = "redis://redis:6379"
-
-
-def rate_limited_task(interval_seconds: int):
-    """Декоратор для ограничения частоты выполнения цикла."""
-    if interval_seconds <= 0:
-        raise ValueError("times_per_minute должен быть больше 0")
-
-    iteration = int(60 / interval_seconds)
-
-    def decorator(func):
-        @functools.wraps(func)
-        async def wrapper(*args, **kwargs):
-            for _ in range(iteration):
-                await func(*args, **kwargs)
-                await asyncio.sleep(interval_seconds)
-
-        return wrapper
-
-    return decorator
-
-
-# Создаем брокер для RabbitMQ
+RABBITMQ_URL = "amqp://user:password@localhost:5672"
 broker = RabbitBroker(RABBITMQ_URL)
-
-# Создаем приложение FastStream
-app = FastStream(broker)
-
-# Оборачиваем брокер в Taskiq для совместимости
-taskiq_broker = BrokerWrapper(broker)
+tasks = Group()
 
 
-# Определим задачу для планирования
-@rate_limited_task(30)
-async def process_rps():
-    logger.info(
-        "Processing scheduled task... Sending message to the queue.",
-    )
-    # Публикуем сообщение в очередь
-    await broker.publish(message="message piska", queue="pizda")
+class Dependencies:
+    redis_client: RedisClient | None = None
+
+    @classmethod
+    async def get_redis(cls) -> RedisClient:
+        """Возвращает инстанс Redis-клиента."""
+        if cls.redis_client is None:
+            raise RuntimeError("RedisClient не инициализирован")
+        return cls.redis_client
+
+
+@tasks.task(trigger=Every(seconds=5))
+async def process_rps(redis: RedisClient = Depends(Dependencies.get_redis)):
+    """Периодическая задача, публикующая сообщение в очередь и работающая с Redis."""
+    logger.info("Processing scheduled task... Sending message to the queue.")
+
+    keys = await redis.get_all_keys(match="notification:*", count=100)
+
+    for key in keys:
+        messages = await redis.pop_from_list(key=key, count=5, right=False)
+
+        if not messages:
+            continue
+
+        if isinstance(messages, list):
+            for m in messages:
+                await broker.publish(message=m, queue="telegram:messages")
+        else:
+            await broker.publish(message=messages, queue="telegram:messages")
+
     logger.info("Message sent to queue.")
 
 
-# Регистрация задачи для планирования с cron-выражением
-taskiq_broker.task(
-    message=process_rps,
-    schedule=[
-        {"cron": "* * * * *"},
-    ],  # Задача будет запускаться каждую минуту
-)
+@asynccontextmanager
+async def lifespan(aio_clock: AioClock):
+    """Логика старта и остановки планировщика и брокера."""
+    logger.info("Starting FastStream broker and AioClock scheduler...")
+
+    Dependencies.redis_client = RedisClient(
+        "redis://localhost:6379/0",
+    )
+    await Dependencies.redis_client.connect()
+
+    async with broker:
+        yield aio_clock
+
+    await Dependencies.redis_client.disconnect()
+    Dependencies.redis_client = None
+    logger.info("Stopping FastStream broker and AioClock scheduler...")
 
 
-@broker.subscriber("pizda")
-async def handle_message(message: str):
-    logger.info(f"Received message from 'pizda' queue: {message}")
-    # Здесь можно выполнить нужные действия с полученным сообщением
-    logger.info(f"Message received: {message}")
+clock = AioClock(lifespan=lifespan)
+clock.include_group(tasks)
 
 
-# Создаем планировщик задач
-scheduler = StreamScheduler(
-    broker=taskiq_broker,
-    sources=[LabelScheduleSource(taskiq_broker)],
-)
+async def main():
+    await clock.serve()
