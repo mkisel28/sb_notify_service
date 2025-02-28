@@ -11,14 +11,12 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:1111",
     "http://127.0.0.1:1111",
-    "http://localhost:5500",
-    "http://88.218.93.26:1111",
+    "https://notify.zn.by",
 ]
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:1111",
     "http://127.0.0.1:1111",
-    "http://localhost:5500",
-    "http://88.218.93.26:1111",
+    "https://notify.zn.by",
 ]
 SESSION_COOKIE_SAMESITE = "None"
 SESSION_COOKIE_SECURE = False
