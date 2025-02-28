@@ -28,7 +28,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      redis:
+      rabbitmq:
         condition: service_healthy
     env_file:
       - .env
@@ -38,13 +38,13 @@ services:
       context: .
       dockerfile: ./docker/backend/Dockerfile
       target: prod
-    container_name: backend_app_sb_notify
+    container_name: rps_tasks_sb_notify
     command: ["python", "main_rps.py"]
     restart: unless-stopped
     depends_on:
-      db:
-        condition: service_healthy
       redis:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     env_file:
       - .env
@@ -54,13 +54,11 @@ services:
       context: .
       dockerfile: ./docker/backend/Dockerfile
       target: prod
-    container_name: backend_app_sb_notify
+    container_name: sender_tasks_sb_notify
     command: ["python", "main_sender.py"]
     restart: unless-stopped
     depends_on:
-      db:
-        condition: service_healthy
-      redis:
+      rabbitmq:
         condition: service_healthy
     env_file:
       - .env
@@ -85,11 +83,9 @@ services:
 
   redis:
     image: redis:8.0-M02-alpine
-    container_name: redis
+    container_name: redis_sb_notify
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
     restart: unless-stopped
-    ports:
-      - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 3s
@@ -107,7 +103,7 @@ services:
     depends_on:
       - admin_app
     ports:
-      - "80:80"
+      - "2222:80"
     volumes:
       - ./docker/nginx.conf:/etc/nginx/nginx.conf
       - static_data_sb_notify:/code/static:ro
@@ -115,13 +111,12 @@ services:
 
   rabbitmq:
     image: "rabbitmq:3-management"
-    container_name: rabbitmq
+    container_name: rabbitmq_sb_notify
     restart: always
     environment:
       RABBITMQ_DEFAULT_USER: user
       RABBITMQ_DEFAULT_PASS: password
     ports:
-      - "5672:5672"
       - "15672:15672"
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
@@ -129,15 +124,6 @@ services:
       timeout: 5s
       retries: 3
 
-  scheduler:
-    build: 
-      context: .
-      dockerfile: ./docker/backend/Dockerfile
-      target: prod
-    command: ["taskiq", "scheduler", "tasks.rps:scheduler"]
-    environment:
-      REDIS_URL: "redis://redis:6379"
-      RABBITMQ_URL: "amqp://user:password@rabbitmq/"
 
 volumes:
   pg_data_sb_notify:

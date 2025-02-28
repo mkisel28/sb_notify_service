@@ -8,7 +8,7 @@ class Settings(BaseSettings):
         validation_alias="REDIS_DSN",
     )
     rabbitmq_url: str = Field(
-        "amqp://user:password@localhost:5672",
+        "amqp://user:password@rabbitmq:5672",
         validation_alias="RABBITMQ_URL",
     )
     DB_NAME: str = Field(
