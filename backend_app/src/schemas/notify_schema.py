@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import StrEnum
 
 from pydantic import BaseModel, Field
@@ -24,3 +25,11 @@ class NotifyIn(BaseModel):
     message: str
     format: MessageParseMode | None = None
     source: SourceType = Field(SourceType.TELEGRAM)
+
+
+class NotifyRedisDto(BaseModel):
+    target_id: int
+    message: str
+    format: MessageParseMode | None = None
+    bot_token: str
+    timestamp: float

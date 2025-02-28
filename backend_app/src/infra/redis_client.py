@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
+from typing import Any
 
 import redis.asyncio as redis
 
@@ -22,7 +23,7 @@ class RedisClient:
         self._redis: redis.Redis | None = None
 
     @retry_on_failure
-    async def connect(self):
+    async def connect(self) -> None:
         """Устанавливает подключение к Redis."""
         if not self._redis:
             self._redis = redis.from_url(
@@ -30,7 +31,7 @@ class RedisClient:
                 decode_responses=self._decode_responses,
             )
 
-    async def disconnect(self):
+    async def disconnect(self) -> None:
         """Закрывает подключение к Redis."""
         if self._redis:
             await self._redis.close()
@@ -63,7 +64,7 @@ class RedisClient:
         redis_con = await self._get_redis_connection()
         return await redis_con.get(key)
 
-    async def delete_key(self, key: str):
+    async def delete_key(self, key: str) -> None:
         """Удаляет ключ из Redis.
 
         :param key: Ключ для удаления.
@@ -207,7 +208,7 @@ class RedisClient:
     async def add_to_list(
         self,
         key: str,
-        *values: str,
+        *values: Any,
         right: bool = True,
         ttl: int | None = None,
     ) -> None:
@@ -273,6 +274,23 @@ class RedisClient:
         """
         redis_client = await self._get_redis_connection()
         return await redis_client.lrange(key, start, end)  # type: ignore [await]
+
+    async def get_all_keys(
+        self,
+        match: str,
+        count: int | None = 10,
+        type: str | None = "LIST",
+    ):
+        redis_client = await self._get_redis_connection()
+
+        return [
+            key
+            async for key in redis_client.scan_iter(
+                match=match,
+                count=count,
+                _type=type,
+            )
+        ]
 
     async def publish_to_channel(self, channel: str, message: str) -> None:
         """Публикует сообщение в канал.

@@ -31,4 +31,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 COPY backend_app/src/ /app/src
 WORKDIR /app/src
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+

@@ -1,6 +1,11 @@
+import logging
+
 import httpx
 
 from schemas.notify_schema import MessageParseMode
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class NotificationService:
@@ -10,7 +15,8 @@ class NotificationService:
         message: str,
         bot_token: str,
         parse_mode: MessageParseMode | None,
-    ):
+    ) -> None:
+        """Отправка сообщения в Telegram."""
         await self._send_telegram_message(
             chat_id,
             bot_token,
@@ -25,6 +31,7 @@ class NotificationService:
         message: str,
         parse_mode: MessageParseMode | None,
     ) -> None:
+        """Отправка сообщения в Telegram."""
         payload = {
             "chat_id": chat_id,
             "text": message,
@@ -39,8 +46,8 @@ class NotificationService:
                 response = await client.post(api_url, json=payload)
                 response.raise_for_status()
             except httpx.HTTPStatusError as e:
-                print(
+                logger.info(
                     f"Ошибка при отправке сообщения: {e.response.status_code} {e.response.text}",
                 )
             except httpx.RequestError as e:
-                print(f"Ошибка соединения с Telegram API: {e}")
+                logger.info(f"Ошибка соединения с Telegram API: {e}")

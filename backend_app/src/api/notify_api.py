@@ -1,29 +1,42 @@
+import json
+from datetime import UTC, datetime
+from http import HTTPStatus
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
+from fastapi.responses import JSONResponse
 
-from api.dependencies import get_notification_service, verify_api_key
-from application.notification_service import NotificationService
+from api.dependencies import (
+    get_redis_client,
+    verify_api_key,
+)
 from infra.database.models.api_key import APIKey
-from schemas.notify_schema import NotifyIn
+from infra.redis_client import RedisClient
+from schemas.notify_schema import NotifyIn, NotifyRedisDto
 
-router = APIRouter(prefix="/notify")
+router = APIRouter(prefix="/notify", tags=["notify"])
 
 
-@router.post("")
+@router.post("/")
 async def notify(
     notify_data: NotifyIn,
     api_key: Annotated[APIKey, Depends(verify_api_key)],
-    notification_service: Annotated[
-        NotificationService,
-        Depends(get_notification_service),
-    ],
-):
-    result = await notification_service.send(
-        notify_data.target_id,
-        notify_data.message,
-        api_key.bot.token,
-        notify_data.format,
+    redis_client: Annotated[RedisClient, Depends(get_redis_client)],
+) -> JSONResponse:
+    key = f"notification:{notify_data.target_id}:{api_key.bot.token}"
+
+    notify_redis_dto = NotifyRedisDto(
+        **notify_data.model_dump(),
+        bot_token=api_key.bot.token,
+        timestamp=datetime.now(UTC).timestamp(),
     )
 
-    return "OK"
+    await redis_client.add_to_list(
+        key,
+        json.dumps(notify_redis_dto.model_dump()),
+    )
+
+    return JSONResponse(
+        content={"message": "Notification created"},
+        status_code=HTTPStatus.CREATED,
+    )
