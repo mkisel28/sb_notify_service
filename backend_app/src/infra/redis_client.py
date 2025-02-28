@@ -23,7 +23,7 @@ class RedisClient:
         self._redis: redis.Redis | None = None
 
     @retry_on_failure
-    async def connect(self):
+    async def connect(self) -> None:
         """Устанавливает подключение к Redis."""
         if not self._redis:
             self._redis = redis.from_url(
@@ -31,7 +31,7 @@ class RedisClient:
                 decode_responses=self._decode_responses,
             )
 
-    async def disconnect(self):
+    async def disconnect(self) -> None:
         """Закрывает подключение к Redis."""
         if self._redis:
             await self._redis.close()
@@ -64,7 +64,7 @@ class RedisClient:
         redis_con = await self._get_redis_connection()
         return await redis_con.get(key)
 
-    async def delete_key(self, key: str):
+    async def delete_key(self, key: str) -> None:
         """Удаляет ключ из Redis.
 
         :param key: Ключ для удаления.

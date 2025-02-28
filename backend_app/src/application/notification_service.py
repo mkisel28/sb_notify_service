@@ -15,7 +15,8 @@ class NotificationService:
         message: str,
         bot_token: str,
         parse_mode: MessageParseMode | None,
-    ):
+    ) -> None:
+        """Отправка сообщения в Telegram."""
         await self._send_telegram_message(
             chat_id,
             bot_token,
@@ -30,6 +31,7 @@ class NotificationService:
         message: str,
         parse_mode: MessageParseMode | None,
     ) -> None:
+        """Отправка сообщения в Telegram."""
         payload = {
             "chat_id": chat_id,
             "text": message,

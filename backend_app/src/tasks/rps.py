@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from aioclock import AioClock, Depends, Every
 from aioclock.group import Group
 from faststream.rabbit import RabbitBroker
+
 from core.config import settings
 from infra.redis_client import RedisClient
 
@@ -26,7 +27,9 @@ class Dependencies:
 
 
 @tasks.task(trigger=Every(seconds=5))
-async def process_rps(redis: RedisClient = Depends(Dependencies.get_redis)):
+async def process_rps(
+    redis: RedisClient = Depends(Dependencies.get_redis),
+) -> None:
     """Периодическая задача, публикующая сообщение в очередь и работающая с Redis."""
     logger.info("Processing scheduled task... Sending message to the queue.")
 
@@ -69,5 +72,5 @@ clock = AioClock(lifespan=lifespan)
 clock.include_group(tasks)
 
 
-async def main():
+async def main() -> None:
     await clock.serve()

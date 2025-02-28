@@ -1,8 +1,10 @@
 import json
 from datetime import UTC, datetime
+from http import HTTPStatus
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
+from fastapi.responses import JSONResponse
 
 from api.dependencies import (
     get_redis_client,
@@ -12,15 +14,15 @@ from infra.database.models.api_key import APIKey
 from infra.redis_client import RedisClient
 from schemas.notify_schema import NotifyIn, NotifyRedisDto
 
-router = APIRouter(prefix="/notify")
+router = APIRouter(prefix="/notify", tags=["notify"])
 
 
-@router.post("")
+@router.post("/")
 async def notify(
     notify_data: NotifyIn,
     api_key: Annotated[APIKey, Depends(verify_api_key)],
     redis_client: Annotated[RedisClient, Depends(get_redis_client)],
-):
+) -> JSONResponse:
     key = f"notification:{notify_data.target_id}:{api_key.bot.token}"
 
     notify_redis_dto = NotifyRedisDto(
@@ -34,4 +36,7 @@ async def notify(
         json.dumps(notify_redis_dto.model_dump()),
     )
 
-    return "kek"
+    return JSONResponse(
+        content={"message": "Notification created"},
+        status_code=HTTPStatus.CREATED,
+    )

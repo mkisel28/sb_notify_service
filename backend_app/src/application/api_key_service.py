@@ -3,6 +3,7 @@ from infra.database.models.api_key import APIKey
 
 class ApiKeyService:
     async def get_api_key(self, api_key: str) -> APIKey | None:
+        """Получение API-ключа по значению."""
         return await APIKey.get_or_none(
             key=api_key,
             is_active=True,

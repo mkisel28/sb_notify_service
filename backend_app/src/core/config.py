@@ -32,7 +32,6 @@ class Settings(BaseSettings):
         validation_alias="DB_PORT",
     )
 
-
     @property
     def tortoise_config(self) -> dict:
         """Конфиг для Tortoise ORM."""
@@ -60,4 +59,4 @@ class Settings(BaseSettings):
         }
 
 
-settings = Settings()
+settings = Settings()  # type: ignore [assignment]
