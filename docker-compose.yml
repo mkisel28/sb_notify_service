@@ -6,7 +6,7 @@ services:
       dockerfile: ./docker/admin/Dockerfile
       target: prod
     container_name: admin_app_sb_notify
-    restart: unless-stopped
+    restart: always
     command: bash -c "python src/manage.py collectstatic --noinput && python src/manage.py migrate && python src/manage.py runserver 0.0.0.0:8000"
     volumes:
       - media_data_sb_notify:/app/src/media  
@@ -24,7 +24,7 @@ services:
       target: prod
     container_name: backend_app_sb_notify
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", ]
-    restart: unless-stopped
+    restart: always
     depends_on:
       db:
         condition: service_healthy
@@ -40,7 +40,7 @@ services:
       target: prod
     container_name: rps_tasks_sb_notify
     command: ["python", "main_rps.py"]
-    restart: unless-stopped
+    restart: always
     depends_on:
       redis:
         condition: service_healthy
@@ -56,7 +56,7 @@ services:
       target: prod
     container_name: sender_tasks_sb_notify
     command: ["python", "main_sender.py"]
-    restart: unless-stopped
+    restart: always
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -71,6 +71,7 @@ services:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+    restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 3s
@@ -85,7 +86,7 @@ services:
     image: redis:8.0-M02-alpine
     container_name: redis_sb_notify
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
-    restart: unless-stopped
+    restart: always
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 3s
@@ -99,7 +100,7 @@ services:
   nginx:
     image: nginx:1.25
     container_name: nginx_sb_notify
-    restart: unless-stopped
+    restart: always
     depends_on:
       - admin_app
     ports:
