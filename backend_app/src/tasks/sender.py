@@ -16,10 +16,9 @@ from schemas.notify_schema import NotifyRedisDto
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+from core.config import settings
 
-
-RABBITMQ_URL = "amqp://user:password@localhost:5672"
-broker = RabbitBroker(RABBITMQ_URL)
+broker = RabbitBroker(settings.rabbitmq_url)
 
 app = FastStream(broker)
 
@@ -30,7 +29,6 @@ queue_1 = RabbitQueue("telegram:messages", auto_delete=True)
 
 @broker.subscriber(queue_1, exch)
 async def base_handler1(msg: Json[NotifyRedisDto]):
-
     await NotificationService().send(
         chat_id=msg.target_id,
         bot_token=msg.bot_token,

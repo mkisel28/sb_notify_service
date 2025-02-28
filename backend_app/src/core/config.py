@@ -7,6 +7,10 @@ class Settings(BaseSettings):
         "redis://redis:6379/0",
         validation_alias="REDIS_DSN",
     )
+    rabbitmq_url: str = Field(
+        "amqp://user:password@localhost:5672",
+        validation_alias="RABBITMQ_URL",
+    )
     DB_NAME: str = Field(
         "sb_news",
         validation_alias="DB_NAME",
@@ -27,6 +31,7 @@ class Settings(BaseSettings):
         5432,
         validation_alias="DB_PORT",
     )
+
 
     @property
     def tortoise_config(self) -> dict:

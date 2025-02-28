@@ -17,13 +17,13 @@ services:
       db:
         condition: service_healthy
 
-
   backend_app:
     build: 
       context: .
       dockerfile: ./docker/backend/Dockerfile
       target: prod
     container_name: backend_app_sb_notify
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", ]
     restart: unless-stopped
     depends_on:
       db:
@@ -32,6 +32,39 @@ services:
         condition: service_healthy
     env_file:
       - .env
+
+  rps_tasks:
+    build: 
+      context: .
+      dockerfile: ./docker/backend/Dockerfile
+      target: prod
+    container_name: backend_app_sb_notify
+    command: ["python", "main_rps.py"]
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+  
+  sender_tasks:
+    build: 
+      context: .
+      dockerfile: ./docker/backend/Dockerfile
+      target: prod
+    container_name: backend_app_sb_notify
+    command: ["python", "main_sender.py"]
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+
 
   db:
     image: postgres:17

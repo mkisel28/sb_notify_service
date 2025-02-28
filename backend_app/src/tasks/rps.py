@@ -4,14 +4,13 @@ from contextlib import asynccontextmanager
 from aioclock import AioClock, Depends, Every
 from aioclock.group import Group
 from faststream.rabbit import RabbitBroker
-
+from core.config import settings
 from infra.redis_client import RedisClient
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-RABBITMQ_URL = "amqp://user:password@localhost:5672"
-broker = RabbitBroker(RABBITMQ_URL)
+broker = RabbitBroker(settings.rabbitmq_url)
 tasks = Group()
 
 
@@ -54,7 +53,7 @@ async def lifespan(aio_clock: AioClock):
     logger.info("Starting FastStream broker and AioClock scheduler...")
 
     Dependencies.redis_client = RedisClient(
-        "redis://localhost:6379/0",
+        settings.redis_dsn,
     )
     await Dependencies.redis_client.connect()
 
